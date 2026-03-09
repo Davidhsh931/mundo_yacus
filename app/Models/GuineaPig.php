@@ -15,4 +15,14 @@ class GuineaPig extends Model
         'category_id',
         'active'
     ];
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function images()
+{
+    return $this->hasMany(\App\Models\GuineaPigImage::class);
+}
+
 }

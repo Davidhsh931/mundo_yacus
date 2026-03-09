@@ -17,6 +17,7 @@ return new class extends Migration
 
             // 👇 Campo agregado
             $table->string('role')->default('cliente');
+            $table->string('phone')->nullable();
 
             $table->rememberToken();
             $table->timestamps();
@@ -35,6 +36,7 @@ return new class extends Migration
             $table->text('user_agent')->nullable();
             $table->longText('payload');
             $table->integer('last_activity')->index();
+            session()->put('cart', $cart);
         });
     }
 
