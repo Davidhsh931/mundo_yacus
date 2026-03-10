@@ -2,24 +2,37 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Category;
+use App\Models\GuineaPig;
+use App\Models\GuineaPigImage;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // 1. Crear Categoría
+        $cat = Category::create([
+            'name' => 'Cuy Peruano',
+            'description' => 'Cuyes de raza pura'
+        ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // 2. Crear un Cuy
+        $pig = GuineaPig::create([
+            'name' => 'Yacu Real',
+            'breed' => 'Americano',
+            'average_weight' => 950.00,
+            'price' => 55.00,
+            'stock' => 15,
+            'description' => 'Un ejemplar magnífico para Mundo Yacus',
+            'category_id' => $cat->id,
+            'active' => true
+        ]);
+
+        // 3. Agregarle una imagen (Asegúrate que el archivo exista en public/images)
+        GuineaPigImage::create([
+            'guinea_pig_id' => $pig->id,
+            'image_path' => '/images/images.jpeg'
         ]);
     }
 }

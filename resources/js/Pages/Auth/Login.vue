@@ -23,8 +23,11 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('login'), {
+    // Cambiamos route('login') por el string directo '/login'
+    form.post('/login', {
         onFinish: () => form.reset('password'),
+        onSuccess: () => console.log("¡Éxito!"),
+        onError: (errors) => console.log("Errores:", errors),
     });
 };
 </script>
@@ -38,6 +41,9 @@ const submit = () => {
         </div>
 
         <form @submit.prevent="submit">
+            <button :disabled="form.processing">
+                Log in
+           </button>
             <div>
                 <InputLabel for="email" value="Email" />
 

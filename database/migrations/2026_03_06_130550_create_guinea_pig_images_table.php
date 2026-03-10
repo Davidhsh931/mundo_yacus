@@ -11,20 +11,18 @@ return new class extends Migration
         Schema::create('guinea_pig_images', function (Blueprint $table) {
 
             $table->id();
-
-            $table->foreignId('guinea_pig_id')
-                ->constrained()
-                ->onDelete('cascade');
-
-            $table->string('image_path');
-
-            $table->timestamps();
+        $table->foreignId('guinea_pig_id')->constrained()->onDelete('cascade');
+        $table->string('image_path');
+        $table->integer('position')->default(0); // <--- SIN LA PALABRA "AFTER"
+        $table->timestamps();
 
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('guinea_pig_images');
+        Schema::table('guinea_pig_images', function (Blueprint $table) {
+            $table->dropColumn('position');
+        });
     }
 };

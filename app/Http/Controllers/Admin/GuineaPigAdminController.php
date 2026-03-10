@@ -15,8 +15,4 @@ class GuineaPigAdminController extends Controller
         'pigs'=>$pigs
     ]);
 }
-    public function category()
-{
-    return $this->belongsTo(Category::class);
-}
 }

@@ -7,33 +7,27 @@ use App\Models\GuineaPig;
 use Inertia\Inertia;
 use App\Models\Order;
 use App\Models\OrderItem;
+use Illuminate\Support\Facades\DB;
 
 class CartController extends Controller
 {
     public function add($id)
-    {
-    $guineaPig = GuineaPig::findOrFail($id);
-
-    if($guineaPig->stock <= 0){
-        return back()->with('error','Producto sin stock');
-    }
+{
+    $pig = GuineaPig::with('images')->findOrFail($id);
 
     $cart = session()->get('cart', []);
 
-    if(isset($cart[$id])) {
-        $cart[$id]['quantity']++;
-    } else {
-        $cart[$id] = [
-            "name" => $guineaPig->name,
-            "price" => $guineaPig->price,
-            "quantity" => 1
-        ];
-    }
+    $cart[$id] = [
+        "name" => $pig->name,
+        "price" => $pig->price,
+        "quantity" => $cart[$id]['quantity'] ?? 1,
+        "image" => $pig->images->first()?->image_path ?? null
+    ];
 
     session()->put('cart', $cart);
 
-    return back();
-    }
+    return redirect()->back()->with('success', 'Cuy agregado al carrito');
+}
 
     public function remove($id)
 {
@@ -66,33 +60,67 @@ public function checkout()
         return redirect()->back();
     }
 
+    DB::beginTransaction();
 
-    $total = 0;
+    try {
 
-    foreach($cart as $item){
-        $total += $item['price'] * $item['quantity'];
-    }
+        $total = 0;
 
-    $order = Order::create([
-        'user_id' => auth()->id(),
-        'total' => $total,
-        'status' => 'pending',
-        'shipping_address' => 'direccion temporal',
-        'payment_method' => 'cash'
-    ]);
+        foreach($cart as $item){
+            $total += $item['price'] * $item['quantity'];
+        }
 
-    foreach($cart as $id => $item){
-        OrderItem::create([
-            'order_id' => $order->id,
-            'guinea_pig_id' => $id,
-            'quantity' => $item['quantity'],
-            'unit_price' => $item['price']
+        $order = Order::create([
+            'user_id' => auth()->id(),
+            'total' => $total,
+            'status' => 'pending',
+            'shipping_address' => 'direccion temporal',
+            'payment_method' => 'cash'
         ]);
+
+        foreach($cart as $id => $item){
+
+            OrderItem::create([
+                'order_id' => $order->id,
+                'guinea_pig_id' => $id,
+                'quantity' => $item['quantity'],
+                'unit_price' => $item['price']
+            ]);
+
+            $pig = GuineaPig::find($id);
+
+            $pig->stock -= $item['quantity'];
+
+            if($pig->stock < 0){
+                throw new \Exception("Stock insuficiente");
+            }
+
+            $pig->save();
+        }
+
+        DB::commit();
+
+        session()->forget('cart');
+
+        return redirect('/')->with('success','Pedido creado');
+
+    } catch(\Exception $e){
+
+        DB::rollBack();
+
+        return back()->with('error','Error al procesar pedido');
     }
-
-    session()->forget('cart');
-
-    return redirect('/')->with('success', 'Order placed!');
-    
 }
+public function orders()
+{
+    $orders = Order::with('items.guineaPig')
+        ->where('user_id', auth()->id())
+        ->latest()
+        ->get();
+
+    return Inertia::render('Orders', [
+        'orders' => $orders
+    ]);
+}
+
 }

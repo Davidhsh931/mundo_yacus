@@ -21,8 +21,8 @@ class GuineaPig extends Model
     }
 
     public function images()
-{
-    return $this->hasMany(\App\Models\GuineaPigImage::class);
-}
+    {
+        return $this->hasMany(GuineaPigImage::class)->orderBy('position');
+    }
 
 }
