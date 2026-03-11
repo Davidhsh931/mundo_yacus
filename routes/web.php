@@ -9,6 +9,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
+Route::get('/cuy/sugerir-stock/{id}', [GuineaPigController::class, 'sugerirStock']);
 Route::prefix('admin')->group(function(){
 
 Route::get('/guinea-pigs',[GuineaPigAdminController::class,'index']);

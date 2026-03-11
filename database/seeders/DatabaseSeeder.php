@@ -2,22 +2,31 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use App\Models\Category;
 use App\Models\GuineaPig;
 use App\Models\GuineaPigImage;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Crear Categoría
+        // 1. Crear Usuario
+        User::create([
+            'name' => 'David',
+            'email' => 'admin@admin.com',
+            'password' => Hash::make('12345678'),
+        ]);
+
+        // 2. Crear Categoría
         $cat = Category::create([
             'name' => 'Cuy Peruano',
             'description' => 'Cuyes de raza pura'
         ]);
 
-        // 2. Crear un Cuy
+        // 3. Crear Cuy
         $pig = GuineaPig::create([
             'name' => 'Yacu Real',
             'breed' => 'Americano',
@@ -29,10 +38,11 @@ class DatabaseSeeder extends Seeder
             'active' => true
         ]);
 
-        // 3. Agregarle una imagen (Asegúrate que el archivo exista en public/images)
+        // 4. Imagen
         GuineaPigImage::create([
             'guinea_pig_id' => $pig->id,
-            'image_path' => '/images/images.jpeg'
+            'image_path' => '/images/images.jpeg',
+            'position' => 1
         ]);
     }
 }
