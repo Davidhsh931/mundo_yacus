@@ -48,34 +48,36 @@ class GuineaPigController extends Controller
      */
     public function sugerirStock($id) 
     {
-        // 1. Obtenemos los datos reales (quantity y created_at)
-        // Le pasamos todo el historial al Panda para que él decida cómo agrupar
         $ventas = OrderItem::where('guinea_pig_id', $id)
                     ->select('quantity', 'created_at')
                     ->get();
 
         if ($ventas->isEmpty()) {
             return response()->json([
-                'id' => $id,
-                'stock_sugerido' => 'Datos insuficientes para predecir',
-                'motor_ia' => 'NumPy + Pandas'
+                'stock_sugerido' => 0,
+                'metodo' => 'Sin datos',
+                'registros' => 0
             ]);
         }
 
-        // 2. Preparamos el JSON para Python
         $jsonVentas = escapeshellarg(json_encode($ventas));
-        
-        // 3. Ejecutamos el script de Python
-        // base_path nos asegura encontrar la carpeta /scripts en la raíz de tu proyecto
         $scriptPath = base_path('scripts/predict_stock.py');
-        $prediccion = shell_exec("python3 $scriptPath $jsonVentas");
+        $prediccionRaw = shell_exec("python3 $scriptPath $jsonVentas");
 
-        // 4. Respuesta al Frontend
-        return response()->json([
-            'id' => $id,
-            'stock_sugerido' => trim($prediccion),
-            'total_registros_analizados' => $ventas->count(),
-            'motor_ia' => 'NumPy + Pandas'
-        ]);
+        // --- EL CAMBIO VITAL AQUÍ ---
+        // Convertimos el texto de Python en un array de PHP
+        $datosIA = json_decode($prediccionRaw, true);
+
+        // Si Python falla o no devuelve JSON válido, damos valores por defecto
+        if (!$datosIA) {
+            return response()->json([
+                'stock_sugerido' => 'Error en script',
+                'metodo' => 'Error',
+                'registros' => 0
+            ]);
+        }
+
+        // Enviamos el objeto LIMPIO a Vue
+        return response()->json($datosIA);
     }
 }

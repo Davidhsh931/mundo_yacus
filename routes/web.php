@@ -4,16 +4,29 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GuineaPigController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\VisionController;
+use App\Http\Controllers\VisionComentController;
 use App\Http\Controllers\Admin\GuineaPigAdminController;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
-Route::get('/cuy/sugerir-stock/{id}', [GuineaPigController::class, 'sugerirStock']);
+Route::post('/vision/analyze', [VisionController::class, 'analyze']);
+Route::get('/vision/analyze', function () {
+    return redirect('/admin/CreatePig'); 
+});
+
+Route::post('/vision/analyze/coment', [VisionComentController::class, 'analyze']);
+Route::get('/vision/analyze/coment', function () {
+    return redirect('/admin/CreatePigComent'); 
+});
+
+Route::get('/api/cuy/sugerir-stock/{id}', [GuineaPigController::class, 'sugerirStock']);
 Route::prefix('admin')->group(function(){
 
 Route::get('/guinea-pigs',[GuineaPigAdminController::class,'index']);
 Route::get('/guinea-pigs/create',[GuineaPigAdminController::class,'create']);
+Route::get('/guinea-pigs/create/coment',[GuineaPigAdminController::class,'create_coment']);
 Route::post('/guinea-pigs',[GuineaPigAdminController::class,'store']);
 Route::get('/guinea-pigs/{id}/edit',[GuineaPigAdminController::class,'edit']);
 Route::put('/guinea-pigs/{id}',[GuineaPigAdminController::class,'update']);
@@ -68,3 +81,9 @@ Route::post('/login', function (Request $request) {
         'email' => 'Las credenciales no coinciden con nuestros registros.',
     ]);
 });
+
+Route::get('/checkout', [CartController::class, 'viewCheckout'])->middleware('auth')->name('checkout');
+Route::get('/order-success/{id}', function($id) {
+    $order = \App\Models\Order::findOrFail($id);
+    return Inertia::render('OrderSuccess', ['order' => $order]);
+})->name('order.success');

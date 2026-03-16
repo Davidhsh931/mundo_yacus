@@ -1,13 +1,20 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 
 const showingNavigationDropdown = ref(false);
+const page = usePage();
+
+// Contador de productos para el carrito
+const cartCount = computed(() => {
+    const cart = page.props.cart || {};
+    return Object.keys(cart).length;
+});
 </script>
 
 <template>
@@ -30,6 +37,13 @@ const showingNavigationDropdown = ref(false);
                                 
                                 <NavLink href="/" :active="$page.component === 'Home'">
                                     Tienda
+                                </NavLink>
+
+                                <NavLink href="/cart" :active="$page.component === 'Cart'" class="relative">
+                                    🛒 Carrito
+                                    <span v-if="cartCount > 0" class="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                                        {{ cartCount }}
+                                    </span>
                                 </NavLink>
 
                                 <NavLink href="/orders" :active="$page.component === 'Orders'">
@@ -79,6 +93,7 @@ const showingNavigationDropdown = ref(false);
                     <div class="space-y-1 pb-3 pt-2">
                         <ResponsiveNavLink href="/dashboard"> Dashboard </ResponsiveNavLink>
                         <ResponsiveNavLink href="/"> Tienda </ResponsiveNavLink>
+                        <ResponsiveNavLink href="/cart"> 🛒 Carrito </ResponsiveNavLink>
                         <ResponsiveNavLink href="/orders"> Mis Pedidos </ResponsiveNavLink>
                     </div>
 

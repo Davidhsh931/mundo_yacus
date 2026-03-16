@@ -17,7 +17,7 @@ class MundoYacusAnalyzerSeeder extends Seeder
         $user = User::first() ?? User::factory()->create();
         $cuyes = GuineaPig::all();
 
-        for ($i = 12; $i >= 0; $i--) {
+        for ($i = 6; $i >= 0; $i--) {
             $mes = Carbon::now()->subMonths($i);
             
             // Simulamos 10 órdenes por mes
