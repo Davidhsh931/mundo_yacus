@@ -54,41 +54,39 @@ from sklearn.linear_model import LinearRegression
 
 def predict():
     try:
-        if len(sys.argv) > 1:
-            input_data = sys.argv[1]
-        else:
-            input_data = sys.stdin.read()
-
-        if not input_data or input_data.strip() == "":
+        # Recibir datos de Laravel vía stdin o argumento
+        input_data = sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()
+        
+        if not input_data.strip():
             print(json.dumps({"stock_sugerido": 0, "error": "No llegaron datos"}))
             return
 
         data = json.loads(input_data)
         df = pd.DataFrame(data)
         df['created_at'] = pd.to_datetime(df['created_at'])
-        
+
         # Agrupamos por mes para la gráfica
         monthly_sales = df.set_index('created_at').resample('ME')['quantity'].sum().reset_index()
-        
-        # Preparamos las etiquetas (Ene 2026) y valores para Chart.js
         chart_labels = monthly_sales['created_at'].dt.strftime('%b %Y').tolist()
         chart_values = monthly_sales['quantity'].tolist()
-        
+
         if len(monthly_sales) < 2:
             last_val = monthly_sales['quantity'].iloc[0] if not monthly_sales.empty else 0
             resultado = int(np.ceil(last_val * 1.1))
             metodo = "NumPy (Promedio simple)"
         else:
+            # Entrenamiento con Scikit-learn
             X = np.array(range(len(monthly_sales))).reshape(-1, 1)
             y = monthly_sales['quantity'].values
             model = LinearRegression()
             model.fit(X, y)
+            
             next_month = np.array([[len(monthly_sales)]])
             prediction = model.predict(next_month)[0]
             resultado = int(np.ceil(max(prediction, 0) * 1.1))
             metodo = "Scikit-learn (Regresión Lineal)"
 
-        # Devolvemos el objeto incluyendo 'chart_data'
+        # Devolvemos el JSON para el Dashboard
         print(json.dumps({
             "stock_sugerido": resultado,
             "metodo": metodo,

@@ -4,7 +4,8 @@ import { useForm, Head, Link } from '@inertiajs/vue3';
 
 const props = defineProps({
     cart: Object,
-    total: Number
+    total: Number,
+    errors: Object // Importante para ver por qué rebota
 });
 
 const form = useForm({
@@ -13,7 +14,15 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post('/cart/checkout');
+    // Usamos la ruta exacta definida en web.php
+    form.post('/cart/checkout', {
+        onSuccess: () => {
+            console.log("Pedido realizado");
+        },
+        onError: () => {
+            alert("Revisa los datos del formulario");
+        }
+    });
 };
 </script>
 
@@ -29,7 +38,13 @@ const submit = () => {
                 <form @submit.prevent="submit" class="space-y-6">
                     <div>
                         <label class="block font-bold text-gray-700 mb-2">Dirección de Entrega</label>
-                        <input v-model="form.shipping_address" type="text" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Ej: Calle Los Sauces 456, Surco" required>
+                        <input v-model="form.shipping_address" 
+                               type="text" 
+                               class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
+                               :class="{'border-red-500': errors.shipping_address}"
+                               placeholder="Ej: Calle Los Sauces 456, Surco" 
+                               required>
+                        <div v-if="errors.shipping_address" class="text-red-500 text-sm mt-1">{{ errors.shipping_address }}</div>
                     </div>
 
                     <div>
@@ -49,8 +64,10 @@ const submit = () => {
                         <Link href="/cart" class="flex-1 text-center py-3 text-gray-500 font-bold hover:bg-gray-100 rounded-lg transition">
                             Volver al Carrito
                         </Link>
-                        <button type="submit" :disabled="form.processing" class="flex-1 bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 shadow-md disabled:bg-gray-400">
-                            Confirmar Pedido
+                        <button type="submit" 
+                                :disabled="form.processing" 
+                                class="flex-1 bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 shadow-md disabled:bg-gray-400">
+                            {{ form.processing ? 'Procesando...' : 'Confirmar Pedido' }}
                         </button>
                     </div>
                 </form>

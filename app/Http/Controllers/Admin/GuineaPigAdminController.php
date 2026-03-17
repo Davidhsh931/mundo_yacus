@@ -3,44 +3,61 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\GuineaPig; // <--- ¡ESTA LÍNEA ES VITAL!
-use Inertia\Inertia;       // <--- ESTA TAMBIÉN
+use Illuminate\Support\Facades\Schema;
+use App\Models\GuineaPig;
+use Inertia\Inertia;
 use Illuminate\Http\Request;
 
 class GuineaPigAdminController extends Controller
 {
     public function index()
     {
-        $pigs = GuineaPig::all();
+        $pigs = GuineaPig::with('seller')->get(); // Incluimos al vendedor para saber quién publica
 
         return Inertia::render('Admin/GuineaPigs/Index', [
             'pigs' => $pigs
         ]);
     }
 
-    public function edit($id)
-    {
-        // Ahora sí encontrará el modelo para buscar al cuy
-        $pig = GuineaPig::findOrFail($id);
-
-        return Inertia::render('Admin/EditPig', [
-            'pig' => $pig
-        ]);
-    }
-
     public function create()
     {
-    // Esto es lo que le dice a Laravel que muestre el formulario de creación
-    return inertia('Admin/CreatePig'); 
-    // Nota: Asegúrate de que la ruta 'Admin/GuineaPigs/Create' coincida 
-    // con la ubicación de tu archivo CreatePig.vue o similar.
-    }
-    public function create_coment()
-    {
-    // Esto es lo que le dice a Laravel que muestre el formulario de creación
-    return inertia('Admin/CreatePigComent'); 
-    // Nota: Asegúrate de que la ruta 'Admin/GuineaPigs/Create' coincida 
-    // con la ubicación de tu archivo CreatePig.vue o similar.
+        // Apuntamos al nuevo archivo que creamos
+        return Inertia::render('Admin/CreateProduct'); 
     }
 
+    public function store(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'price' => 'required|numeric',
+        'species' => 'required',
+        'product_state' => 'required',
+        'stock' => 'nullable|integer' // Validamos el stock
+    ]);
+
+    GuineaPig::create([
+        'user_id' => auth()->id(), 
+        'name' => $request->name,
+        'species' => $request->species,
+        'price' => $request->price,
+        'product_state' => $request->product_state,
+        'stock' => $request->stock ?? 1, // Si no viene nada, le ponemos 1 por defecto
+        'active' => true, // Aseguramos que esté activo
+        'specifications' => $request->custom_attributes,
+        'ia_verification' => $request->ia_verification,
+    ]);
+
+    return redirect('/admin/guinea-pigs')->with('message', '¡Producto publicado con éxito!');
+}
+
+    public function edit($id)
+    {
+        $pig = GuineaPig::findOrFail($id);
+        return Inertia::render('Admin/EditPig', ['pig' => $pig]);
+    }
+
+    public function create_coment()
+    {
+        return Inertia::render('Admin/CreatePigComent'); 
+    }
 }

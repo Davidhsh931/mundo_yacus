@@ -117,11 +117,12 @@ class CartController extends Controller
             session()->forget('cart');
 
             // --- PASO 3: Redirigir a la página de éxito ---
-            return redirect()->route('order.success', $order->id)->with('success','Pedido creado');
+            // Cambia la línea del redirect en CartController.php por esta:
+return redirect('/orders')->with('success', '¡Pedido creado con éxito!');
 
         } catch(\Exception $e){
             DB::rollBack();
-            return back()->with('error', $e->getMessage());
+            dd($e->getMessage());
         }
     }
 

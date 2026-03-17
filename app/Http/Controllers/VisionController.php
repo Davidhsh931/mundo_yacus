@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
 
 class VisionController extends Controller
 {
@@ -76,4 +77,8 @@ class VisionController extends Controller
 // Pasamos los 2 argumentos al comando
 $process = Process::timeout(60)->run("python3 " . escapeshellarg($scriptPath) . " " . escapeshellarg($fullPath) . " " . escapeshellarg($comentario));
     }
+    public function index()
+{
+    return Inertia::render('Admin/VisionScanner');
+}
 }

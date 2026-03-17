@@ -12,21 +12,25 @@ use Illuminate\Support\Facades\DB;
 class GuineaPigController extends Controller
 {
     public function index()
-    {
-        $guineaPigs = GuineaPig::with('category', 'images')
-            ->where('active', true)
-            ->get();
+{
+    // Traemos todo lo necesario para el Mercado Directo
+    $guineaPigs = \App\Models\GuineaPig::with(['seller', 'images'])->get();
 
-        return Inertia::render('Home', [
-            'guineaPigs' => $guineaPigs
-        ]);
-    }
+    return Inertia::render('Home', [
+        'guineaPigs' => $guineaPigs // Nombre exacto que espera tu Home.vue
+    ]);
+}
 
     public function show($id)
-    {
-        $guineaPig = GuineaPig::with('images')->findOrFail($id);
-        return view('guinea_pigs.show', compact('guineaPig'));
-    }
+{
+    // Añadimos 'seller' para que la página de detalle sepa quién lo vende
+    $guineaPig = GuineaPig::with(['images', 'seller'])->findOrFail($id);
+    
+    // Si estás usando Inertia (como en tu Home.vue), usa esto:
+    return Inertia::render('Product', [
+        'guineaPig' => $guineaPig
+    ]);
+}
 
     public function uploadImage(Request $request, $id)
     {
@@ -80,4 +84,13 @@ class GuineaPigController extends Controller
         // Enviamos el objeto LIMPIO a Vue
         return response()->json($datosIA);
     }
+
+    public function store(Request $request) {
+    $product = new GuineaPig();
+    $product->user_id = auth()->id(); // El habitante logueado es el dueño
+    $product->species = $request->species;
+    $product->status_type = $request->status_type;
+    $product->specifications = $request->specifications; // Guardamos el JSON
+    $product->save();
+}
 }

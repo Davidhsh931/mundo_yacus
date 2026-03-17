@@ -3,33 +3,36 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
+  // Asegúrate de que el controlador envíe 'guineaPigs' con la relación 'seller'
   guineaPigs: Array
 });
 
 const page = usePage();
 
-function addToCart(id) {
+function addToCart(pig) {
     // Si no está logueado, lo mandamos a loguearse antes de comprar
     if (!page.props.auth.user) {
         router.visit('/login');
         return;
     }
 
-    console.log("Intentando agregar el cuy id:", id);
-    router.post('/cart/add/' + id, {}, {
-        onSuccess: () => alert('¡Cuy agregado al carrito! 🐹'),
+    console.log("Intentando agregar al carrito:", pig.name);
+    
+    // Usamos el ID del animal para la ruta del carrito
+    router.post('/cart/add/' + pig.id, {}, {
+        onSuccess: () => alert('¡Agregado al carrito de Mundo Yacus! 🐹'),
         onError: (errors) => console.log("Error al agregar:", errors),
     });
 }
 </script>
 
 <template>
-    <Head title="Tienda - Mundo Yacus" />
+    <Head title="Mercado Directo - Mundo Yacus" />
 
     <AuthenticatedLayout>
         <template #header>
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Nuestros Cuyes en Venta
+                Mercado de la Chacra: Sin Intermediarios
             </h2>
         </template>
 
@@ -44,34 +47,58 @@ function addToCart(id) {
                     <div 
                         v-for="pig in guineaPigs" 
                         :key="pig.id"
-                        class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                        class="bg-white border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                     >
-                        <div @click="router.visit('/product/' + pig.id)">
+                        <div @click="router.visit('/product/' + pig.id)" class="cursor-pointer">
                             <img
                                 v-if="pig.images && pig.images.length"
                                 :src="pig.images[0].image_path"
-                                class="w-full h-48 object-cover rounded mb-3"
+                                class="w-full h-48 object-cover"
                             />
-                            <div v-else class="w-full h-48 bg-gray-200 flex items-center justify-center rounded mb-3 text-gray-400">
-                                Sin foto
+                            <div v-else class="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-400">
+                                Sin foto del producto
                             </div>
-
-                            <h2 class="text-xl font-bold text-gray-900">{{ pig.name }}</h2>
-                            <p class="text-gray-600">{{ pig.breed }}</p>
-                            <p class="mt-2 font-bold text-green-600 text-lg">S/ {{ pig.price }}</p>
-                            
-                            <p :class="pig.stock <= 0 ? 'text-red-500 font-bold' : 'text-gray-500'" class="text-sm mt-1">
-                                Stock disponible: {{ pig.stock }}
-                            </p>
                         </div>
 
-                        <button
-                            @click.stop="addToCart(pig.id)"
-                            :disabled="pig.stock <= 0"
-                            class="w-full mt-4 bg-indigo-600 text-white px-3 py-2 rounded font-bold hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
-                        > 
-                            {{ pig.stock <= 0 ? 'Agotado' : '🛒 Agregar al carrito' }}
-                        </button>
+                        <div class="p-4">
+                            <div class="flex justify-between items-start">
+                                <h2 class="text-xl font-bold text-gray-800">{{ pig.name }}</h2>
+                                <span :class="{
+                                    'bg-green-100 text-green-800': pig.product_state === 'vivo',
+                                    'bg-red-100 text-red-800': pig.product_state === 'beneficiado',
+                                    'bg-blue-100 text-blue-800': pig.product_state === 'procesado'
+                                }" class="px-2 py-1 rounded text-xs font-bold uppercase">
+                                    {{ pig.product_state || 'Vivo' }}
+                                </span>
+                            </div>
+
+                            <div class="mt-2 space-y-1 min-h-[50px]">
+                                <div v-for="(attr, index) in pig.custom_attributes" :key="index" class="text-sm text-gray-600">
+                                    <span class="font-semibold">{{ attr.key }}:</span> {{ attr.value }}
+                                </div>
+                                <p v-if="!pig.custom_attributes" class="text-xs text-gray-400 italic">Sin detalles adicionales</p>
+                            </div>
+
+                            <div class="mt-4 flex justify-between items-center border-t pt-4">
+                                <div>
+                                    <span class="text-2xl font-bold text-indigo-600">S/. {{ pig.price }}</span>
+                                    <p class="text-xs text-gray-500">Stock: {{ pig.stock }}</p>
+                                </div>
+                                
+                                <div class="text-right">
+                                    <p class="text-[10px] text-gray-500 uppercase tracking-wider">Productor</p>
+                                    <p class="text-sm font-bold text-gray-700">{{ pig.seller?.name || 'Habitante Yacus' }}</p>
+                                </div>
+                            </div>
+
+                            <button
+                                @click.stop="addToCart(pig)"
+                                :disabled="pig.stock <= 0"
+                                class="w-full mt-4 bg-orange-500 text-white py-2 rounded-md font-bold hover:bg-orange-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+                            > 
+                                {{ pig.stock <= 0 ? 'Agotado' : 'Comprar Directo' }}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

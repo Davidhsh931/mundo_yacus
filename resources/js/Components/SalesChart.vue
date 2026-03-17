@@ -10,7 +10,7 @@ const chartCanvas = ref(null);
 let chartInstance = null;
 
 const initChart = () => {
-    // Si ya existe una instancia (por un re-render), la destruimos para evitar duplicados
+    // Evitamos duplicados destruyendo la instancia previa
     if (chartInstance) {
         chartInstance.destroy();
     }
@@ -52,7 +52,7 @@ const initChart = () => {
 };
 
 onMounted(() => {
-    // Solo cargamos el script si no existe ya en el documento
+    // Carga dinámica de Chart.js para optimizar el rendimiento
     if (!window.Chart) {
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
@@ -63,7 +63,7 @@ onMounted(() => {
     }
 });
 
-// ESCUCHA: Si los datos de Laravel cambian, actualizamos la gráfica automáticamente
+// Vigilamos cambios profundos en los datos
 watch(() => props.data, () => {
     if (window.Chart) initChart();
 }, { deep: true });
@@ -73,7 +73,7 @@ watch(() => props.data, () => {
     <div class="w-full bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
         <div class="flex items-center justify-between mb-6">
             <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">
-                📈 Tendencia de Ventas
+                📈 Tendencia de Ventas (Datos de la Chacra)
             </h3>
         </div>
         <div style="position: relative; height: 320px;">
