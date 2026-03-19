@@ -7,15 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 class GuineaPig extends Model
 {
     protected $fillable = [
-        'name', 
-        'description', 
-        'price', 
-        'user_id', 
-        'species',        // Nuevo: cuy, oveja, etc.
-        'product_state', 
-        'specifications',  // Antes custom_attributes, ahora más técnico
-        'ia_verification'  // El sello de garantía de Cuy-Vision
-    ];
+    'user_id', 
+    'name', 
+    'species', 
+    'price', 
+    'product_state', 
+    'stock',          // <--- ASEGÚRATE DE QUE ESTÉ AQUÍ
+    'specifications',   // <--- ASEGÚRATE DE QUE ESTÉ AQUÍ
+    'ia_verification', 
+    'active'
+];
 
     protected $casts = [
         'specifications' => 'array', 

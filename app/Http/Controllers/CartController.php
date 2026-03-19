@@ -11,21 +11,22 @@ use Illuminate\Support\Facades\DB;
 
 class CartController extends Controller
 {
-    public function add($id)
-    {
-        $pig = GuineaPig::with('images')->findOrFail($id);
-        $cart = session()->get('cart', []);
+    // En CartController.php
+public function add($id) {
+    $pig = GuineaPig::with('images')->findOrFail($id);
+    $cart = session()->get('cart', []);
 
-        $cart[$id] = [
-            "name" => $pig->name,
-            "price" => $pig->price,
-            "quantity" => $cart[$id]['quantity'] ?? 1,
-            "image" => $pig->images->first()?->image_path ?? null
-        ];
+    $cart[$id] = [
+        "name" => $pig->name,
+        "quantity" => 1,
+        "price" => $pig->price,
+        // Usamos la primera imagen disponible
+        "image" => $pig->images->first() ? $pig->images->first()->image_path : null 
+    ];
 
-        session()->put('cart', $cart);
-        return redirect()->back()->with('success', 'Cuy agregado al carrito');
-    }
+    session()->put('cart', $cart);
+    return back();
+}
 
     public function remove($id)
     {

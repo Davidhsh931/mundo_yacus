@@ -25,29 +25,48 @@ class GuineaPigAdminController extends Controller
         return Inertia::render('Admin/CreateProduct'); 
     }
 
-    public function store(Request $request)
+    public function store(Request $request) 
 {
     $request->validate([
         'name' => 'required|string|max:255',
         'price' => 'required|numeric',
+        'stock' => 'required|integer|min:0', // Validamos el nuevo stock
         'species' => 'required',
         'product_state' => 'required',
-        'stock' => 'nullable|integer' // Validamos el stock
+        'image' => 'required|image|max:2048', 
     ]);
 
-    GuineaPig::create([
-        'user_id' => auth()->id(), 
-        'name' => $request->name,
-        'species' => $request->species,
-        'price' => $request->price,
-        'product_state' => $request->product_state,
-        'stock' => $request->stock ?? 1, // Si no viene nada, le ponemos 1 por defecto
-        'active' => true, // Aseguramos que esté activo
-        'specifications' => $request->custom_attributes,
-        'ia_verification' => $request->ia_verification,
-    ]);
+    try {
+        // 1. Creamos el animal
+        $pig = \App\Models\GuineaPig::create([
+            'user_id'         => auth()->id(), 
+            'name'            => $request->name,
+            'species'         => $request->species,
+            'price'           => $request->price,
+            'product_state'   => $request->product_state,
+            'stock'           => $request->stock, 
+            'active'          => true,
+            // Importante: Si Vue envía un objeto, Laravel lo convierte a JSON automáticamente si el modelo tiene cast
+            'specifications'  => $request->specifications, 
+            'ia_verification' => $request->ia_verification, 
+        ]);
 
-    return redirect('/admin/guinea-pigs')->with('message', '¡Producto publicado con éxito!');
+        // 2. Guardamos la imagen
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('images', 'public');
+
+            \App\Models\GuineaPigImage::create([
+                'guinea_pig_id' => $pig->id,
+                'image_path'    => $path,
+                'position'      => 1
+            ]);
+        }
+
+        return redirect()->route('home')->with('message', '¡Publicado con éxito!');
+
+    } catch (\Exception $e) {
+        return back()->with('error', 'Error: ' . $e->getMessage());
+    }
 }
 
     public function edit($id)

@@ -64,9 +64,11 @@ onMounted(() => {
 });
 
 // Vigilamos cambios profundos en los datos
-watch(() => props.data, () => {
-    if (window.Chart) initChart();
-}, { deep: true });
+watch(() => props.data, (newVal) => {
+    if (newVal && newVal.length > 0) {
+        initChart();
+    }
+}, { deep: true, immediate: true });
 </script>
 
 <template>

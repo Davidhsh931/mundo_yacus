@@ -7,9 +7,27 @@ const props = defineProps({
     cart: Object
 })
 
+const FALLBACK_IMAGE = '/images/cobaya-fondo-blanco.jpg'
+const isInvalidImageValue = (value) => {
+    if (value === null || value === undefined) return true
+    if (value === 0 || value === '0') return true
+    if (typeof value === 'string' && value.trim() === '') return true
+    return false
+}
+
+const formatCartImage = (image) => {
+    if (isInvalidImageValue(image)) return null
+    const str = typeof image === 'string' ? image.trim() : String(image)
+    if (isInvalidImageValue(str)) return null
+    if (str.startsWith('http')) return str
+    if (str.startsWith('/images/')) return str
+    if (str.startsWith('/storage/')) return str
+    return '/storage/' + str.replace(/^\/?storage\/?/, '')
+}
+
 const total = computed(() => {
     return Object.values(props.cart || {}).reduce((sum, item) => {
-        return sum + (item.price * item.quantity)
+        return sum + (parseFloat(item.price) * item.quantity)
     }, 0)
 })
 
@@ -39,7 +57,12 @@ const goToCheckout = () => {
 
             <div v-else class="space-y-4">
                 <div v-for="(item, id) in cart" :key="id" class="bg-white p-4 rounded-lg shadow flex items-center gap-4">
-                    <img v-if="item.image" :src="item.image" class="w-24 h-24 object-cover rounded" />
+                    <img
+                        :src="formatCartImage(item.image)"
+                        class="w-24 h-24 object-cover rounded"
+                        @error="(e) => { e.target.removeAttribute('src'); e.target.src = FALLBACK_IMAGE }"
+                    />
+                    
                     <div class="flex-1">
                         <h2 class="font-bold text-xl">{{ item.name }}</h2>
                         <p class="text-green-600 font-bold text-lg">S/. {{ item.price }}</p>
